@@ -2,70 +2,45 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Card from "../common/Card";
 import { MapPin, Star } from "lucide-react";
-import gangaarti from "../../assets/images/gangaarti.jpg";
+import api from "../../services/api"; // ✅ use axios instance
 
 const FeaturedDestinations = () => {
   const [destinations, setDestinations] = useState([]);
 
   useEffect(() => {
-    // India-focused destinations for your tourism app
-    const mockDestinations = [
-      {
-        id: 1,
-        name: "Leh Ladakh", // ✅ Changed to Leh Ladakh
-        image:
-          "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&fit=crop&h=400", // High-altitude landscapes
-        rating: 4.9,
-        reviews: 2876,
-        price: 24999,
-        description:
-          "High-altitude adventure with Pangong Lake and monasteries",
-        country: "India",
-        duration: 7,
-      },
-      {
-        id: 2,
-        name: "Jaisalmer, Rajasthan",
-        image:
-          "https://images.unsplash.com/photo-1599661046289-e31897846e41?w=800&fit=crop&h=400", // Desert fort
-        rating: 4.8,
-        reviews: 2987,
-        price: 699,
-        description: "Golden City with desert safaris and Thar Desert camps",
-        country: "India",
-        duration: 3,
-      },
-      {
-        id: 3,
-        name: "Manali, Himachal Pradesh",
-        image:
-          "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=800&fit=crop&h=400",
-        rating: 4.9,
-        reviews: 3201,
-        price: 799,
-        description: "Adventure hub with adventure sports and snowy peaks",
-        country: "India",
-        duration: 4,
-      },
-      {
-        id: 4,
-        name: "Rishikesh, Uttarakhand",
-        image: gangaarti, // ✅ Ganga Aarti
-        rating: 4.8,
-        reviews: 1654,
-        price: 499,
-        description: "Yoga capital with Ganga Aarti and rafting",
-        country: "India",
-        duration: 2,
-      },
-    ];
-    setDestinations(mockDestinations);
+    fetchFeatured();
   }, []);
+
+  const fetchFeatured = async () => {
+    try {
+      // ✅ CALL NEW BACKEND API
+      const res = await api.get("/destinations/featured");
+      const data = res.data;
+
+      if (!data || data.length === 0) return;
+
+      const formatted = data.map((dest) => ({
+        id: dest._id,
+        name: dest.name,
+        image: `http://localhost:5000${dest.image}`,
+        rating: dest.rating || 4.5,
+        reviews: dest.reviews || 1000,
+        price: dest.price || 10000,
+        description: dest.description,
+        state: dest.state || dest.location || "India",
+      }));
+
+      setDestinations(formatted);
+    } catch (error) {
+      console.error("Error fetching featured destinations:", error);
+    }
+  };
 
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        {/* Fixed title section */}
+
+        {/* Title */}
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Featured Destinations
@@ -75,10 +50,13 @@ const FeaturedDestinations = () => {
           </p>
         </div>
 
+        {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {destinations.map((destination) => (
             <Link key={destination.id} to={`/destinations/${destination.id}`}>
               <Card hover={true}>
+
+                {/* Image */}
                 <div className="relative">
                   <img
                     src={destination.image}
@@ -90,11 +68,15 @@ const FeaturedDestinations = () => {
                   </div>
                 </div>
 
+                {/* Content */}
                 <div className="p-6">
+
+                  {/* Title + Rating */}
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-xl font-semibold text-gray-900">
                       {destination.name}
                     </h3>
+
                     <div className="flex items-center space-x-1 text-yellow-500">
                       <Star className="w-5 h-5 fill-current" />
                       <span className="text-sm font-medium text-gray-700">
@@ -103,22 +85,32 @@ const FeaturedDestinations = () => {
                     </div>
                   </div>
 
+                  {/* Description */}
                   <p className="text-gray-600 text-sm mb-4 leading-relaxed">
                     {destination.description}
                   </p>
 
+                  {/* Footer */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500 font-medium">
                       {destination.reviews.toLocaleString()} reviews
                     </span>
-                    <MapPin className="w-4 h-4 text-gray-400" />
+
+                    <div className="flex items-center gap-1 text-gray-500">
+                      <MapPin className="w-4 h-4" />
+                      <span className="text-xs">
+                        {destination.state}
+                      </span>
+                    </div>
                   </div>
+
                 </div>
               </Card>
             </Link>
           ))}
         </div>
 
+        {/* Button */}
         <div className="text-center mt-16">
           <Link
             to="/destinations"
@@ -127,6 +119,7 @@ const FeaturedDestinations = () => {
             View All Destinations
           </Link>
         </div>
+
       </div>
     </section>
   );

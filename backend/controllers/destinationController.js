@@ -1,6 +1,6 @@
 import Destination from "../models/Destination.js";
 
-// Get all destinations
+// ✅ Get all destinations
 export const getDestinations = async (req, res) => {
   try {
     const destinations = await Destination.find().sort({ createdAt: -1 });
@@ -10,7 +10,20 @@ export const getDestinations = async (req, res) => {
   }
 };
 
-// Get single destination
+// ✅ Get featured destinations
+export const getFeaturedDestinations = async (req, res) => {
+  try {
+    const featured = await Destination.find({ featured: true })
+      .sort({ rating: -1 })
+      .limit(4);
+
+    res.json(featured);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch featured destinations" });
+  }
+};
+
+// ✅ Get single destination
 export const getDestinationById = async (req, res) => {
   try {
     const destination = await Destination.findById(req.params.id);
@@ -25,17 +38,21 @@ export const getDestinationById = async (req, res) => {
   }
 };
 
-// Add destination
+// ✅ Add destination
 export const addDestination = async (req, res) => {
   try {
-    const newDestination = await Destination.create(req.body);
+    const newDestination = await Destination.create({
+      ...req.body,
+      featured: req.body.featured || false, // ✅ ensure default
+    });
+
     res.status(201).json(newDestination);
   } catch (error) {
     res.status(500).json({ error: "Failed to add destination" });
   }
 };
 
-// Update destination
+// ✅ Update destination
 export const updateDestination = async (req, res) => {
   try {
     const updated = await Destination.findByIdAndUpdate(
@@ -54,7 +71,28 @@ export const updateDestination = async (req, res) => {
   }
 };
 
-// Delete destination
+// ✅ Toggle featured (NEW 🔥)
+export const toggleFeatured = async (req, res) => {
+  try {
+    const { featured } = req.body;
+
+    const updated = await Destination.findByIdAndUpdate(
+      req.params.id,
+      { featured },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ msg: "Destination not found" });
+    }
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update featured status" });
+  }
+};
+
+// ✅ Delete destination
 export const deleteDestination = async (req, res) => {
   try {
     const deleted = await Destination.findByIdAndDelete(req.params.id);

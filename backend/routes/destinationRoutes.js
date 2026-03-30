@@ -3,21 +3,25 @@ const router = express.Router();
 
 import {
   getDestinations,
+  getFeaturedDestinations,
   getDestinationById,
   addDestination,
   updateDestination,
   deleteDestination,
+  toggleFeatured,
 } from "../controllers/destinationController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
 
-// Public routes
+// ✅ Public routes
 router.get("/", getDestinations);
+router.get("/featured", getFeaturedDestinations); // 🔥 NEW
 router.get("/:id", getDestinationById);
 
-// Protected routes
+// ✅ Protected routes
 router.post("/", protect, addDestination);
 router.put("/:id", protect, updateDestination);
+router.patch("/:id/featured", protect, toggleFeatured); // 🔥 NEW
 router.delete("/:id", protect, deleteDestination);
 
-export default router;  
+export default router;

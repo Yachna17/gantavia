@@ -47,6 +47,10 @@ const destinationSchema = new mongoose.Schema(
       type: [String], //  FIXED (array)
       default: ["City"],
     },
+    featured: {
+    type: Boolean,
+    default: false,
+  }
   },
   { timestamps: true }
 );

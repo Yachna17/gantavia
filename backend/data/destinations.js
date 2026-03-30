@@ -8,7 +8,8 @@ const destinations = [
     price: 15000,
     duration: 5,
     category: ["Mountain", "Adventure"],
-    description: "Beautiful hill station with snow-covered mountains and scenic valleys"
+    description: "Beautiful hill station with snow-covered mountains and scenic valleys",
+    featured: true
   },
   {
     name: "Goa",
@@ -19,7 +20,8 @@ const destinations = [
     price: 14000,
     duration: 4,
     category: ["Beach", "Nightlife"],
-    description: "Famous for beaches, nightlife, and vibrant culture"
+    description: "Famous for beaches, nightlife, and vibrant culture",
+    featured: true
   },
   {
     name: "Jaipur",
@@ -30,7 +32,8 @@ const destinations = [
     price: 12000,
     duration: 3,
     category: ["Historical", "City"],
-    description: "The Pink City known for forts, palaces, and royal heritage"
+    description: "The Pink City known for forts, palaces, and royal heritage",
+    featured: true
   },
   {
     name: "Leh Ladakh",
@@ -41,7 +44,8 @@ const destinations = [
     price: 20000,
     duration: 7,
     category: ["Mountain", "Adventure"],
-    description: "High-altitude desert with stunning landscapes and monasteries"
+    description: "High-altitude desert with stunning landscapes and monasteries",
+    featured: true
   },
   {
     name: "Rishikesh",
@@ -52,7 +56,8 @@ const destinations = [
     price: 9000,
     duration: 3,
     category: ["Adventure", "Spiritual"],
-    description: "Yoga capital of the world and hub for river rafting"
+    description: "Yoga capital of the world and hub for river rafting",
+    featured: true
   },
   {
     name: "Udaipur",
@@ -63,7 +68,8 @@ const destinations = [
     price: 13000,
     duration: 3,
     category: ["City", "Romantic"],
-    description: "City of lakes with beautiful palaces and romantic vibes"
+    description: "City of lakes with beautiful palaces and romantic vibes",
+    featured: true
   },
   {
     name: "Kerala Backwaters",

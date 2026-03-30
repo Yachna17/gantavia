@@ -87,6 +87,11 @@ export const deleteDestination = async (id) => {
   return res.data;
 };
 
+export const getFeaturedDestinations = async () => {
+  const response = await fetch("http://localhost:5000/api/destinations/featured");
+  return response.json();
+};
+
 /* =========================
    EXPORT
 ========================= */
