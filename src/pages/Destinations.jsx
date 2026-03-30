@@ -24,9 +24,7 @@ const Destinations = () => {
 
   const hasFetched = useRef(false);
 
-  /* =========================
-     FETCH
-  ========================= */
+  /* FETCH */
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
@@ -72,9 +70,7 @@ const Destinations = () => {
     }
   };
 
-  /* =========================
-     FILTER
-  ========================= */
+  /* FILTER */
   const handleFilterChange = (filters) => {
     let filtered = [...destinations];
 
@@ -115,9 +111,7 @@ const Destinations = () => {
     setCurrentPage(1);
   };
 
-  /* =========================
-     SEARCH
-  ========================= */
+  /* SEARCH */
   const handleSearch = () => {
     if (!searchQuery.trim()) {
       setFilteredDestinations(destinations);
@@ -135,9 +129,7 @@ const Destinations = () => {
     setCurrentPage(1);
   };
 
-  /* =========================
-     SORT
-  ========================= */
+  /* SORT */
   const handleSort = (sortType) => {
     setSortBy(sortType);
 
@@ -163,9 +155,7 @@ const Destinations = () => {
     setFilteredDestinations(sorted);
   };
 
-  /* =========================
-     PAGINATION
-  ========================= */
+  /* PAGINATION */
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
 
@@ -176,78 +166,119 @@ const Destinations = () => {
 
   const totalPages = Math.ceil(filteredDestinations.length / itemsPerPage);
 
-  /* =========================
-     LOADING
-  ========================= */
+  /* LOADING */
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p>Loading destinations...</p>
+        <div className="animate-spin h-16 w-16 border-t-4 border-blue-600 rounded-full"></div>
       </div>
     );
   }
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="container mx-auto px-4 py-8">
 
-        {/* Search */}
-        <div className="flex mb-6">
-          <input
-            type="text"
-            placeholder="Search destinations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 p-3 border rounded-l"
-          />
-          <Button onClick={handleSearch}>Search</Button>
+      {/* HERO */}
+      <div className="bg-linear-to-r from-blue-600 to-purple-600 text-white py-16">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Explore Destinations
+          </h1>
+          <p className="text-xl mb-8">
+            Discover amazing places around India
+          </p>
+
+          <div className="max-w-2xl">
+            <div className="flex bg-white rounded-lg shadow-lg overflow-hidden">
+              <div className="flex items-center px-4 text-gray-500">
+                <Search className="w-5 h-5" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search destinations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 px-4 py-4 outline-none text-gray-900"
+              />
+              <Button onClick={handleSearch} className="rounded-none">
+                Search
+              </Button>
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Filters */}
-        <FilterPanel onFilterChange={handleFilterChange} />
+      {/* MAIN */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
 
-        {/* Sort */}
-        <select
-          value={sortBy}
-          onChange={(e) => handleSort(e.target.value)}
-          className="mb-4 p-2 border rounded"
-        >
-          <option value="popular">Popular</option>
-          <option value="rating">Rating</option>
-          <option value="price-low">Low Price</option>
-          <option value="price-high">High Price</option>
-        </select>
+          {/* Filters */}
+          <aside className="hidden lg:block w-80">
+            <FilterPanel onFilterChange={handleFilterChange} isMobile={false} />
+          </aside>
 
-        {/* Cards */}
-        {filteredDestinations.length === 0 ? (
-          <p>No destinations found</p>
-        ) : (
-          <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentDestinations.map((destination) => (
-                <DestinationCard
-                  key={destination.id}
-                  destination={destination}
-                />
-              ))}
+          <div className="lg:hidden">
+            <FilterPanel onFilterChange={handleFilterChange} isMobile={true} />
+          </div>
+
+          {/* Content */}
+          <div className="flex-1">
+
+            {/* Sort */}
+            <div className="bg-white rounded-lg shadow-md p-4 mb-6 flex justify-end">
+              <select
+                value={sortBy}
+                onChange={(e) => handleSort(e.target.value)}
+                className="px-4 py-2 border rounded-lg"
+              >
+                <option value="popular">Most Popular</option>
+                <option value="rating">Highest Rated</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+              </select>
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex gap-2 justify-center">
-                {[...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className="px-3 py-1 border"
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+            {/* Grid */}
+            {filteredDestinations.length === 0 ? (
+              <div className="text-center p-10">
+                <MapPin className="mx-auto mb-4 text-gray-400" size={40} />
+                <p>No destinations found</p>
               </div>
+            ) : (
+              <>
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {currentDestinations.map((destination) => (
+                    <DestinationCard
+                      key={destination.id}
+                      destination={destination}
+                      viewMode={viewMode}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-10 flex justify-center gap-2">
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`px-4 py-2 rounded-lg ${
+                          currentPage === i + 1
+                            ? "bg-blue-600 text-white"
+                            : "border"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+
+          </div>
+        </div>
       </div>
     </div>
   );
