@@ -1,7 +1,7 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
-import AIChatbot from "./components/AIChatbot"; // ✅ chatbot
+import AIChatbot from "./components/AIChatbot";
 
 import Home from "./pages/Home";
 import Destinations from "./pages/Destinations";
@@ -14,26 +14,108 @@ import PlanTrip from "./pages/PlanTrip";
 
 import MainLayout from "./layouts/MainLayouts";
 
+// 🔒 Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <p>Loading...</p>;
+  if (!user) return <Navigate to="/auth" />;
+
+  return children;
+};
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-
-        {/* ROUTES */}
         <Routes>
+
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/destinations" element={<Destinations />} />
-            <Route path="/destinations/:id" element={<DestinationDetails />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/favourites" element={<Favourites />} />
+
+            {/* AUTH */}
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/itinerary" element={<PlanTrip />} />
+
+            {/* HOME */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* DESTINATIONS */}
+            <Route
+              path="/destinations"
+              element={
+                <ProtectedRoute>
+                  <Destinations />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/destinations/:id"
+              element={
+                <ProtectedRoute>
+                  <DestinationDetails />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* OTHER PAGES */}
+            <Route
+              path="/about"
+              element={
+                <ProtectedRoute>
+                  <About />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/contact"
+              element={
+                <ProtectedRoute>
+                  <Contact />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/favourites"
+              element={
+                <ProtectedRoute>
+                  <Favourites />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ✅ FIXED ROUTE (MAIN) */}
+            <Route
+              path="/plantrip"
+              element={
+                <ProtectedRoute>
+                  <PlanTrip />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ✅ OPTIONAL BACKUP ROUTE */}
+            <Route
+              path="/itinerary"
+              element={
+                <ProtectedRoute>
+                  <PlanTrip />
+                </ProtectedRoute>
+              }
+            />
+
           </Route>
         </Routes>
 
-        {/* 🔥 GLOBAL AI CHATBOT (VISIBLE EVERYWHERE) */}
+        {/* AI CHATBOT */}
         <AIChatbot />
 
       </Router>
