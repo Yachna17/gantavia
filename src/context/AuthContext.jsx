@@ -5,7 +5,7 @@ import axios from "axios";
 // Create Auth Context
 export const AuthContext = createContext();
 
-// Custom hook to use AuthContext
+// Custom hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -17,14 +17,17 @@ export const useAuth = () => {
 // Backend API base
 const API = "http://localhost:5000/api/auth";
 
-// AuthProvider component
+// AuthProvider
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on app start
+  /* =========================
+     LOAD USER FROM STORAGE
+  ========================= */
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
+
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
@@ -33,6 +36,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("user");
       }
     }
+
     setLoading(false);
   }, []);
 
@@ -43,13 +47,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await axios.post(`${API}/login`, { email, password });
 
-      // Backend returns: { _id, name, email, token }
+      // ✅ INCLUDE TOKEN INSIDE USER
       const { _id, name, email: userEmail, token } = res.data;
-      const loggedInUser = { _id, name, email: userEmail };
+
+      const loggedInUser = {
+        _id,
+        name,
+        email: userEmail,
+        token, // 🔥 IMPORTANT FIX
+      };
 
       setUser(loggedInUser);
       localStorage.setItem("user", JSON.stringify(loggedInUser));
-      localStorage.setItem("token", token);
 
       return loggedInUser;
     } catch (error) {
@@ -59,20 +68,28 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* =========================
-     SIGNUP (auto-login after signup)
+     SIGNUP
   ========================= */
   const signup = async (name, email, password) => {
     try {
-      // Updated to match your backend signup route
-      const res = await axios.post(`${API}/signup`, { name, email, password });
+      const res = await axios.post(`${API}/signup`, {
+        name,
+        email,
+        password,
+      });
 
-      // Backend returns: { _id, name, email, token }
+      // ✅ INCLUDE TOKEN INSIDE USER
       const { _id, name: userName, email: userEmail, token } = res.data;
-      const newUser = { _id, name: userName, email: userEmail };
+
+      const newUser = {
+        _id,
+        name: userName,
+        email: userEmail,
+        token, // 🔥 IMPORTANT FIX
+      };
 
       setUser(newUser);
       localStorage.setItem("user", JSON.stringify(newUser));
-      localStorage.setItem("token", token);
 
       return newUser;
     } catch (error) {
@@ -87,7 +104,6 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
   };
 
   /* =========================
@@ -95,12 +111,15 @@ export const AuthProvider = ({ children }) => {
   ========================= */
   const updateProfile = (updatedData) => {
     if (!user) return;
+
     const updatedUser = { ...user, ...updatedData };
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
-  // Context value
+  /* =========================
+     CONTEXT VALUE
+  ========================= */
   const value = {
     user,
     loading,

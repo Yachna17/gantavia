@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import placesData from "../data/places";
 
@@ -13,6 +14,8 @@ import {
 
 const PlanTrip = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     destination: "",
@@ -27,21 +30,18 @@ const PlanTrip = () => {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ EXISTING STATES
   const [showBooking, setShowBooking] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
 
   const [bookingData, setBookingData] = useState({
     name: "",
-    email: "",
     phone: "",
   });
 
-  // ✅ NEW STATES
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [contactMode, setContactMode] = useState("");
 
-  // ✅ AUTO-FILL
+  // ✅ AUTO-FILL DESTINATION
   useEffect(() => {
     if (location.state) {
       setSelectedDestination(location.state);
@@ -68,7 +68,7 @@ const PlanTrip = () => {
   const getMapURL = (city) =>
     `https://www.google.com/maps?q=${city}&output=embed`;
 
-  // ================= SUBMIT =================
+  // ================= GENERATE PLAN =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -113,40 +113,52 @@ const PlanTrip = () => {
 
   const downloadTrip = () => window.print();
 
-  // ================= NEW FUNCTIONS =================
+  // ================= BOOKING =================
   const handleConfirmBooking = async () => {
-  if (!bookingData.name || !bookingData.email || !bookingData.phone) {
-    alert("Please fill all details");
-    return;
-  }
+    if (!bookingData.name || !bookingData.phone) {
+      alert("Please fill all details");
+      return;
+    }
 
-  if (!contactMode) {
-    alert("Please select Chat or Call");
-    return;
-  }
+    if (!contactMode) {
+      alert("Please select Chat or Call");
+      return;
+    }
 
-  try {
-    await axios.post("http://localhost:5000/api/bookings", {
-      ...bookingData,
-      contactMode,
-      destination: tripPlan.destination,
-      travelers: tripPlan.travelers,
-      budget: tripPlan.budget,
-    });
+    try {
+      await axios.post(
+        "/api/bookings",
+        {
+          name: bookingData.name,
+          email: user.email, // 🔥 AUTO EMAIL
+          phone: bookingData.phone,
+          contactMode,
+          destination: tripPlan.destination,
+          travelers: tripPlan.travelers,
+          budget: tripPlan.budget,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`, // 🔐 SECURE
+          },
+        }
+      );
 
-    setBookingConfirmed(true);
-  } catch (error) {
-    alert("Booking failed");
-  }
-};
+      setBookingConfirmed(true);
 
-  const handleChat = () => {
-    setContactMode("Chat");
+      // 🚀 Redirect to Dashboard
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
+
+    } catch (error) {
+      console.error(error);
+      alert("Booking failed");
+    }
   };
 
-  const handleCall = () => {
-    setContactMode("Call");
-  };
+  const handleChat = () => setContactMode("Chat");
+  const handleCall = () => setContactMode("Call");
 
   // ================= UI =================
   return (
@@ -155,7 +167,7 @@ const PlanTrip = () => {
         ✈️ Smart Travel Planner
       </h1>
 
-      {/* DESTINATION */}
+      {/* DESTINATION CARD */}
       {selectedDestination && (
         <div className="max-w-3xl mx-auto mb-6 bg-white p-4 rounded-2xl shadow-md flex gap-4 items-center">
           <img
@@ -165,18 +177,14 @@ const PlanTrip = () => {
           />
 
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold">
               {selectedDestination.name}
             </h2>
             <p className="text-gray-500 text-sm">
               {selectedDestination.location}
             </p>
-            <p className="text-blue-600 font-semibold mt-1">
-              ₹{selectedDestination.price} / person
-            </p>
-            <p className="text-sm text-gray-600">
-              ⭐ {selectedDestination.rating} |{" "}
-              {selectedDestination.duration} days
+            <p className="text-blue-600 font-semibold">
+              ₹{selectedDestination.price}
             </p>
           </div>
         </div>
@@ -251,6 +259,7 @@ const PlanTrip = () => {
         </button>
       </form>
 
+      {/* LOADING */}
       {loading && (
         <p className="text-center mt-6 animate-pulse">
           Generating your trip...
@@ -267,61 +276,6 @@ const PlanTrip = () => {
           <p>📅 {tripPlan.days} Days</p>
           <p>💰 ₹{tripPlan.totalCost}</p>
 
-          {/* WEATHER */}
-          {weather && (
-            <div className="mt-6 p-4 bg-blue-100 rounded-xl">
-              <h3 className="font-bold">🌦 Weather</h3>
-              <p>{weather.main.temp}°C</p>
-              <p>{weather.weather[0].main}</p>
-            </div>
-          )}
-
-          {/* MAP */}
-          <div className="mt-6">
-            <h3 className="font-bold">🗺 Map</h3>
-            <iframe
-              src={getMapURL(tripPlan.destination)}
-              className="w-full h-64 rounded-xl"
-              title="map"
-            ></iframe>
-          </div>
-
-          {/* TIMELINE */}
-          <div className="mt-6">
-            <h3 className="font-bold text-xl mb-3">📆 Day-wise Plan</h3>
-
-            {tripPlan.timeline.map((d) => (
-              <div
-                key={d.day}
-                className="border p-5 rounded-xl mt-3 shadow-sm bg-gray-50"
-              >
-                <h4 className="font-semibold text-lg mb-3">
-                  Day {d.day} - {d.place}
-                </h4>
-
-                <p>🌅 Morning: {d.morning}</p>
-                <p>🌞 Afternoon: {d.afternoon}</p>
-                <p>🌙 Evening: {d.evening}</p>
-
-                <div className="mt-2">
-                  <span className="text-xs bg-blue-100 px-3 py-1 rounded-full">
-                    🎯 {d.activity || "Exploration"}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* HOTELS */}
-          <div className="mt-6">
-            <h3 className="font-bold">🏨 Hotels</h3>
-            {tripPlan.hotels.map((h, i) => (
-              <p key={i}>
-                {h.name} - {h.rating} - {h.price}
-              </p>
-            ))}
-          </div>
-
           {/* BOOK BUTTON */}
           <button
             onClick={() => setShowBooking(true)}
@@ -330,24 +284,16 @@ const PlanTrip = () => {
             Book Now
           </button>
 
-          {/* BOOKING */}
+          {/* BOOKING FORM */}
           {showBooking && (
             <div className="mt-8 bg-gray-100 p-6 rounded-xl">
-              <h3 className="text-xl font-bold mb-4">User Details</h3>
+              <h3 className="text-xl font-bold mb-4">Your Details</h3>
 
               <input
                 placeholder="Name"
                 className="border p-2 w-full mb-2"
                 onChange={(e) =>
                   setBookingData({ ...bookingData, name: e.target.value })
-                }
-              />
-
-              <input
-                placeholder="Email"
-                className="border p-2 w-full mb-2"
-                onChange={(e) =>
-                  setBookingData({ ...bookingData, email: e.target.value })
                 }
               />
 
@@ -359,25 +305,13 @@ const PlanTrip = () => {
                 }
               />
 
-              <h3 className="text-lg font-bold mt-4">Payment</h3>
-              <select className="border p-2 w-full">
-                <option>UPI</option>
-                <option>Card</option>
-                <option>Net Banking</option>
-              </select>
-
-              <button
-                onClick={handleConfirmBooking}
-                className="mt-4 bg-purple-600 text-white px-6 py-2 rounded-xl"
-              >
-                Confirm Booking
-              </button>
-
               <div className="mt-4 flex gap-4">
                 <button
                   onClick={handleChat}
                   className={`px-4 py-2 rounded text-white ${
-                    contactMode === "Chat" ? "bg-blue-700" : "bg-blue-500"
+                    contactMode === "Chat"
+                      ? "bg-blue-700"
+                      : "bg-blue-500"
                   }`}
                 >
                   Chat 💬
@@ -386,30 +320,29 @@ const PlanTrip = () => {
                 <button
                   onClick={handleCall}
                   className={`px-4 py-2 rounded text-white ${
-                    contactMode === "Call" ? "bg-green-700" : "bg-green-500"
+                    contactMode === "Call"
+                      ? "bg-green-700"
+                      : "bg-green-500"
                   }`}
                 >
                   Call 📞
                 </button>
               </div>
 
+              <button
+                onClick={handleConfirmBooking}
+                className="mt-4 bg-purple-600 text-white px-6 py-2 rounded-xl"
+              >
+                Confirm Booking
+              </button>
+
               {bookingConfirmed && (
                 <div className="mt-4 p-4 bg-green-100 text-green-700 rounded-xl">
                   ✅ Booking Confirmed!
-                  <p>
-                    We will contact you via <b>{contactMode}</b> shortly.
-                  </p>
                 </div>
               )}
             </div>
           )}
-
-          <button
-            onClick={downloadTrip}
-            className="mt-6 bg-purple-600 text-white px-6 py-2 rounded-xl"
-          >
-            Download Plan
-          </button>
         </div>
       )}
     </div>
