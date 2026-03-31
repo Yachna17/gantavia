@@ -114,19 +114,31 @@ const PlanTrip = () => {
   const downloadTrip = () => window.print();
 
   // ================= NEW FUNCTIONS =================
-  const handleConfirmBooking = () => {
-    if (!bookingData.name || !bookingData.email || !bookingData.phone) {
-      alert("Please fill all details");
-      return;
-    }
+  const handleConfirmBooking = async () => {
+  if (!bookingData.name || !bookingData.email || !bookingData.phone) {
+    alert("Please fill all details");
+    return;
+  }
 
-    if (!contactMode) {
-      alert("Please select Chat or Call");
-      return;
-    }
+  if (!contactMode) {
+    alert("Please select Chat or Call");
+    return;
+  }
+
+  try {
+    await axios.post("http://localhost:5000/api/bookings", {
+      ...bookingData,
+      contactMode,
+      destination: tripPlan.destination,
+      travelers: tripPlan.travelers,
+      budget: tripPlan.budget,
+    });
 
     setBookingConfirmed(true);
-  };
+  } catch (error) {
+    alert("Booking failed");
+  }
+};
 
   const handleChat = () => {
     setContactMode("Chat");

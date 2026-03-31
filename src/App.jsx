@@ -14,6 +14,7 @@ import Contact from "./pages/Contact";
 import Favourites from "./pages/Favourites";
 import AuthPage from "./pages/AuthPage";
 import PlanTrip from "./pages/PlanTrip";
+import Dashboard from "./pages/Dashboard";
 
 // 👉 Axios Base URL (IMPORTANT)
 axios.defaults.baseURL = "http://localhost:5000";
@@ -22,7 +23,7 @@ axios.defaults.baseURL = "http://localhost:5000";
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
   if (!user) return <Navigate to="/auth" />;
 
   return children;
@@ -34,9 +35,10 @@ function App() {
       <Router>
         <Routes>
 
+          {/* Layout Wrapper */}
           <Route element={<MainLayout />}>
 
-            {/* AUTH */}
+            {/* AUTH (Public) */}
             <Route path="/auth" element={<AuthPage />} />
 
             {/* HOME */}
@@ -64,6 +66,26 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DestinationDetails />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* PLAN TRIP */}
+            <Route
+              path="/plantrip"
+              element={
+                <ProtectedRoute>
+                  <PlanTrip />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* BACKUP ROUTE */}
+            <Route
+              path="/itinerary"
+              element={
+                <ProtectedRoute>
+                  <PlanTrip />
                 </ProtectedRoute>
               }
             />
@@ -96,22 +118,12 @@ function App() {
               }
             />
 
-            {/* PLAN TRIP */}
+            {/* ✅ DASHBOARD (NEW) */}
             <Route
-              path="/plantrip"
+              path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <PlanTrip />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* BACKUP ROUTE */}
-            <Route
-              path="/itinerary"
-              element={
-                <ProtectedRoute>
-                  <PlanTrip />
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
@@ -120,7 +132,7 @@ function App() {
 
         </Routes>
 
-        {/* AI CHATBOT */}
+        {/* AI CHATBOT (Global Component) */}
         <AIChatbot />
 
       </Router>
